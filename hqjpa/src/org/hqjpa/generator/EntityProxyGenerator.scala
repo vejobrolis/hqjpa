@@ -107,7 +107,7 @@ class EntityProxyGenerator(val entityModel : JpaEntityMetadataParser.Model) {
 			else {
 				//use full paths of Java primitive types for value type, otherwise Scala value types get expected in their place
 				if( GeneratorUtil.isPrimitiveTypeName(valueType) ) {
-					valueType = s"java.lang.${valueType}";	
+					valueType = GeneratorUtil.getFullClassNameForPrimitiveType(valueType).get;	
 				}
 				
 				//create field

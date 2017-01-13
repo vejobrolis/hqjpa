@@ -21,6 +21,18 @@ object GeneratorUtil {
 	 * @return True if yes, false if no.
 	 */
 	def isPrimitiveTypeName(typeName : String) : Boolean = {
-		Consts.javaPrimitiveTypes.find { jpt => jpt == typeName }.isDefined;
+		Consts.javaPrimitiveTypes.find { case(jpt, jptFull) => jpt == typeName }.isDefined;
+	}
+	
+	/**
+	 * Get full class name for given primitive type.
+	 * @param typeName Name of primitive type to get full class name for.
+	 * @return Some full class name or None if given type name is not considered to represent a primitive type.
+	 */
+	def getFullClassNameForPrimitiveType(typeName : String) : Option[String] = {
+		val result = Consts.javaPrimitiveTypes
+			.find { case(jpt, jptFull) => jpt == typeName }
+			.map { case(jpt, jptFull) => jptFull };
+		return result;
 	}
 }
