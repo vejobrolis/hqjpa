@@ -21,13 +21,13 @@ import org.slf4j.LoggerFactory
  * 		setSessionFactory(...) at some point of initialization ... 
  *    }
  *    
- *    //use your DB service object
- *    SomeDb.inTransaction { dbs =>
- *    	SomeDb.select { q => ... }.all/first/firstOption/count();
- *    	SomeDb.update(...){ (q, ...) => ... }.run();
+ *    //use your DB service object for queries
+ *    SomeDB.inTransaction { dbs =>
+ *    	SomeDB.select { q => ... }.all/first/firstOption/count();
+ *    	SomeDB.update(...){ (q, ...) => ... }.run();
  *    
  *    	//deletes do not cascade via Hibernate mechanisms if done this way
- *    	SomeDb.delete(...){ (q, ...) => ... }.run();
+ *    	SomeDB.delete(...){ (q, ...) => ... }.run();
  *    }
  * </pre>
  * <br/>
