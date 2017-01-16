@@ -162,7 +162,11 @@ class EntityProxy[OWNER, ENTITY, SELF](
 			return __path.get;
 		}
 		
-		val msg = "Neither 'from' nor 'path' are defined. Unable to extract 'Selection'."; 
+		val msg = 
+			"Neither 'from' nor 'path' are defined. Unable to extract 'Selection'. " +
+			"This probaly means, that you are trying to select a relation attribute. " + 
+			"Relation attributes allow navigating relations, but can not be selected " +
+			"into query result."; 
 		throw new Error(msg);
 	}
 	
@@ -175,7 +179,11 @@ class EntityProxy[OWNER, ENTITY, SELF](
 			return __path.get;
 		}
 		
-		val msg = "Neither 'from' nor 'path' are defined. Unable to extract 'Selection'."; 
+		val msg = 
+			"Neither 'from' nor 'path' are defined. Unable to extract 'Expression'. " + 
+			"This probably means that you are trying to treat relation attribute as an " +
+			"expression. Relation attributes allow navigating relations, but can not " + 
+			"be used as expressions directly."; 
 		throw new Error(msg);
 	}
 }
