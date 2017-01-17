@@ -27,13 +27,25 @@ object OperatorExtensions {
 		 * @return A corresponding predicate proxy.	
 		 */
 		def in(values : VALUE*) : PredicateProxy = {
-			val valuesCollection = values.asJavaCollection;
-			val predicate = __leftSideExpr().in(valuesCollection);
-			
-			val proxy = new PredicateProxy(predicate, queryBuilder);
-			
-			//
-			return proxy;
+			//if value list is empty generate expression "1=2" instead of "x IN ()" which fails in execution
+			if( values.size == 0 ) {
+				val cb = queryBuilder.criteriaBuilder;
+				val pred = cb.equal(cb.literal(1), cb.literal(2));
+				val proxy = new PredicateProxy(pred, queryBuilder);
+				
+				//
+				return proxy;
+			}
+			//value list is non-empty, generate normal IN expression
+			else {
+				val valuesCollection = values.asJavaCollection;			
+				val predicate = __leftSideExpr().in(valuesCollection);
+				
+				val proxy = new PredicateProxy(predicate, queryBuilder);
+				
+				//
+				return proxy;
+			}
 		}
 		
 		/**
