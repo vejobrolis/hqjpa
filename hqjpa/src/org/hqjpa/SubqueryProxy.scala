@@ -297,7 +297,7 @@ class SubqueryProxy[VALUE](
 		IExpressionProvider[VALUE]
 {
 	override def __getSelection() : Selection[VALUE] = {
-		return subquery;
+		return subquery.getSelection();
 	}	
 	
 	override def __getExpression() : Expression[VALUE] = {
