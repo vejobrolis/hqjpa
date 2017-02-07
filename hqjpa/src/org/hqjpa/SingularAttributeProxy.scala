@@ -399,6 +399,15 @@ class SingularAttributeProxy[OWNER, VALUE](
 	}
 	
 	/**
+	 * Derive ordering from this attribute.
+	 * @param asc True to derive ascending ordering, false to derive descending ordering.
+	 * @return Ordering derived.
+	 */
+	def order(asc : Boolean) : Order = {
+		return (if( asc ) this.asc else this.desc);
+	}
+	
+	/**
 	 * Creates a pair from underlying JPA path of the attribute being proxied and 
 	 * a given value. Is used in update queries to produce attribute setters.
 	 * @param value Value to add to the pair.

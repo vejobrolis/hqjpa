@@ -328,4 +328,13 @@ class ExpressionProxy[VALUE](
 	def desc : Order = {
 		return queryBuilder.criteriaBuilder.desc(expr);
 	}
+	
+	/**
+	 * Derive ordering from this expression.
+	 * @param asc True to derive ascending ordering, false to derive descending ordering.
+	 * @return Ordering derived.
+	 */
+	def order(asc : Boolean) : Order = {
+		return (if( asc ) this.asc else this.desc);
+	}
 }
