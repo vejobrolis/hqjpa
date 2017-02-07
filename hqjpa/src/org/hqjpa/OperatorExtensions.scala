@@ -202,7 +202,7 @@ object OperatorExtensions {
 		 * @param other Expression to test against.
 		 * @return A corresponding predicate proxy.
 		 */
-		def >=[OTHER_OWNER, OTHER_META](other : IExpressionProvider[VALUE]) : PredicateProxy = {			
+		def >=(other : IExpressionProvider[VALUE]) : PredicateProxy = {			
 			val predicate = queryBuilder.criteriaBuilder.greaterThanOrEqualTo(
 						__leftSideExpr(), other.__getExpression()
 					);			
@@ -230,7 +230,7 @@ object OperatorExtensions {
 		 * @param other Expression to test against.
 		 * @return A corresponding predicate proxy.
 		 */
-		def <[OTHER_OWNER, OTHER_META](other : IExpressionProvider[VALUE]) : PredicateProxy = {
+		def <(other : IExpressionProvider[VALUE]) : PredicateProxy = {
 			
 			val predicate = queryBuilder.criteriaBuilder.lessThanOrEqualTo(
 						__leftSideExpr(), other.__getExpression()
@@ -259,7 +259,7 @@ object OperatorExtensions {
 		 * @param other Expression to test against.
 		 * @return A corresponding predicate proxy.
 		 */
-		def <=[OTHER_OWNER, OTHER_META](other : IExpressionProvider[VALUE]) : PredicateProxy = {
+		def <=(other : IExpressionProvider[VALUE]) : PredicateProxy = {
 			
 			val predicate = queryBuilder.criteriaBuilder.lessThanOrEqualTo(
 						__leftSideExpr(), other.__getExpression()
@@ -313,6 +313,50 @@ object OperatorExtensions {
 		 */
 		def length : ExpressionProxy[java.lang.Integer] = {
 			val expr = queryBuilder.criteriaBuilder.length(__leftSideExpr());
+			val proxy = new ExpressionProxy(expr, queryBuilder);
+			
+			//
+			return proxy;
+		}
+		
+		/**
+		 * Concatenate this expression with given string. Cannot use just "+" because
+		 * it likely clashes with any2StringAdd implicit and compiler does not find
+		 * the right operator when expression is used as argument.
+		 * @param other StringString to concatenate with.
+		 * @return Resulting expression proxy.
+		 */
+		def :+(other : String) : ExpressionProxy[String] = {
+			val expr = queryBuilder.criteriaBuilder.concat(__leftSideExpr(), other);
+			val proxy = new ExpressionProxy(expr, queryBuilder);
+			
+			//
+			return proxy;
+		}
+		
+		/**
+		 * Concatenate this expression with given string expression. Cannot use just "+" because
+		 * it likely clashes with any2StringAdd implicit and compiler does not find
+		 * the right operator when expression is used as argument.
+		 * @param other String epxression to concatenate with.
+		 * @return Resulting expression proxy.
+		 */
+		def :+(other : IExpressionProvider[String]): ExpressionProxy[String] = {
+			val expr = queryBuilder.criteriaBuilder.concat(__leftSideExpr(), other.__getExpression());
+			val proxy = new ExpressionProxy(expr, queryBuilder);
+			
+			//
+			return proxy;
+		}
+		
+		/**
+		 * Concatenate given string with this expression (right associative version
+		 * of "+"). 
+		 * @param other String expression to concatenate with.
+		 * @return Resulting expression proxy.
+		 */
+		def +:(other : String) : ExpressionProxy[String] = {
+			val expr = queryBuilder.criteriaBuilder.concat(other, __leftSideExpr());
 			val proxy = new ExpressionProxy(expr, queryBuilder);
 			
 			//

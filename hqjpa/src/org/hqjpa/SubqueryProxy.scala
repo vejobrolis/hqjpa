@@ -3,6 +3,7 @@ package org.hqjpa
 import javax.persistence.criteria.Subquery
 import javax.persistence.criteria.Selection
 import javax.persistence.criteria.Expression
+import javax.persistence.criteria.Order
 
 /**
  * Companion object for related class.<br/>
@@ -296,6 +297,29 @@ class SubqueryProxy[VALUE](
 		ISelectionProvider[VALUE] with
 		IExpressionProvider[VALUE]
 {
+	/**
+	 * Ascending ordering for this subquery. 
+	 */
+	def asc : Order = {
+		return queryBuilder.criteriaBuilder.asc(subquery);		
+	}
+	
+	/**
+	 * Descending ordering for this subquery.
+	 */
+	def desc : Order = {
+		return queryBuilder.criteriaBuilder.desc(subquery);
+	}
+	
+	/**
+	 * Derive ordering from this subquery.
+	 * @param asc True to derive ascending ordering, false to derive descending ordering.
+	 * @return Ordering derived.
+	 */
+	def order(asc : Boolean) : Order = {
+		return (if( asc ) this.asc else this.desc);
+	}
+	
 	override def __getSelection() : Selection[VALUE] = {
 		return subquery.getSelection();
 	}	
