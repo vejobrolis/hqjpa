@@ -46,6 +46,7 @@ class DeleteQueryBuilder[ENTITY](
 	extends 
 		IQueryBuilder with
 		ScalaNumericLiteralsSupport with
+		FunctionCallSupport with
 		SubquerySupport
 {
 	import DeleteQueryBuilder._

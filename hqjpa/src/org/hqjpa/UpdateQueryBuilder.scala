@@ -48,6 +48,7 @@ class UpdateQueryBuilder[ENTITY](
 	extends 
 		IQueryBuilder with
 		ScalaNumericLiteralsSupport with
+		FunctionCallSupport with
 		SubquerySupport
 {
   	import UpdateQueryBuilder._

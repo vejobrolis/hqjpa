@@ -702,6 +702,7 @@ class SelectQueryBuilder(
 	extends 
 		IQueryBuilder with
 		ScalaNumericLiteralsSupport with
+		FunctionCallSupport with
 		SubquerySupport with
 		SelectQuerySupport
 {
