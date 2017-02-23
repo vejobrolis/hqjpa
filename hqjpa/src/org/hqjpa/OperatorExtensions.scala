@@ -377,11 +377,23 @@ object OperatorExtensions {
 		def queryBuilder : IQueryBuilder;
 		
 		/**
-		 * Create a COUNT expression on this attribute.
+		 * Create a COUNT expression on this attribute or expression.
 		 * @return A proxy for the expression.
 		 */
 		def count : ExpressionProxy[java.lang.Long] = {
 			val expr = queryBuilder.criteriaBuilder.count(__leftSideExpr());
+			val proxy = new ExpressionProxy(expr, queryBuilder);
+			
+			//
+			return proxy;
+		}
+		
+		/**
+		 * Create a COUNT(DISTINCT ...) expression on this attribute or expression.
+		 * @return A proxy for the expression.
+		 */
+		def countDistinct : ExpressionProxy[java.lang.Long] = {
+			val expr = queryBuilder.criteriaBuilder.countDistinct(__leftSideExpr());
 			val proxy = new ExpressionProxy(expr, queryBuilder);
 			
 			//

@@ -45,6 +45,35 @@ trait SelectQuerySupport { self : IQueryBuilder =>
 	}
 	
 	/** 
+	 * Create a COUNT(DISTINCT ...) expression on queryBuilder root.
+	 * 
+	 * @param OWNER Type of parent entity.
+	 * @param ENTITY Type of entity being joined.
+	 * @param SELF Type of entity proxy class.
+	 * 
+	 * @param entityProxy Proxy of the entity to build query root from. 
+	 * @return A proxy for the expression.
+	 */
+	def countDistinct[EP[OWNER, ENTITY, SELF] <: EntityProxy[OWNER, ENTITY, SELF], OWNER, ENTITY, SELF](entityProxy : EP[OWNER, ENTITY, SELF]) : ExpressionProxy[java.lang.Long] = {
+		//get query root from parent entity proxy of fail if one is not available
+		val root = entityProxy.__root.getOrElse {
+				val msg = 
+					"Unable to COUNT on entity that is not a query root. This probably means that" +
+					"you are skipping an intermediate entity in a join or using meta-data entity directly. " +
+					"Perform your joins sequentially without skipping intermediate entities, use from() to " +
+					"derive countable query roots.";
+				throw new AssertionError(msg);
+			};
+		
+		//produce count expression
+		val expr = criteriaBuilder.countDistinct(root);
+		val exprProxy = new ExpressionProxy(expr, this);
+		
+		//
+		return exprProxy;
+	}
+	
+	/** 
 	 * Create query root in JOIN clause.
 	 * 
 	 * @param OWNER Type of parent entity.
