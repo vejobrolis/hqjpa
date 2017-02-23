@@ -259,12 +259,35 @@ object OperatorExtensions {
 		 * @param other Expression to test against.
 		 * @return A corresponding predicate proxy.
 		 */
-		def <=(other : IExpressionProvider[VALUE]) : PredicateProxy = {
-			
+		def <=(other : IExpressionProvider[VALUE]) : PredicateProxy = {			
 			val predicate = queryBuilder.criteriaBuilder.lessThanOrEqualTo(
 						__leftSideExpr(), other.__getExpression()
 					);			
 			val proxy = new PredicateProxy(predicate, queryBuilder);
+			
+			//
+			return proxy;
+		}
+		
+		/**
+		 * Get MAX(...) expression on attribute or expression.
+		 * @return A corresponding expression proxy.
+		 */
+		def greatest : ExpressionProxy[VALUE] = {
+			val expr = queryBuilder.criteriaBuilder.greatest(__leftSideExpr());
+			val proxy = new ExpressionProxy(expr, queryBuilder);
+			
+			//
+			return proxy;
+		}
+		
+		/**
+		 * Get MIN(...) expression on attribute or expression.
+		 * @return A corresponding expression proxy.
+		 */
+		def least : ExpressionProxy[VALUE] = {
+			val expr = queryBuilder.criteriaBuilder.least(__leftSideExpr());
+			val proxy = new ExpressionProxy(expr, queryBuilder);
 			
 			//
 			return proxy;
@@ -492,6 +515,95 @@ object OperatorExtensions {
 		def toLong : ExpressionProxy[java.lang.Long] = {
 			val tce = queryBuilder.criteriaBuilder.toLong(__leftSideExpr());
 			val proxy = new ExpressionProxy(tce, queryBuilder);
+			
+			//
+			return proxy;
+		}
+		
+		/**
+		 * Get MAX(...) expression on attribute or expression.
+		 * @return A corresponding expression proxy.
+		 */
+		def max : ExpressionProxy[VALUE] = {
+			val expr = queryBuilder.criteriaBuilder.max(__leftSideExpr());
+			val proxy = new ExpressionProxy(expr, queryBuilder);
+			
+			//
+			return proxy;
+		}
+		
+		/**
+		 * Get MIN(...) expression on attribute or expression.
+		 * @return A corresponding expression proxy.
+		 */
+		def min : ExpressionProxy[VALUE] = {
+			val expr = queryBuilder.criteriaBuilder.min(__leftSideExpr());
+			val proxy = new ExpressionProxy(expr, queryBuilder);
+			
+			//
+			return proxy;
+		}
+		
+		/**
+		 * Add given value to this expression.
+		 * @param value Value to add.
+		 * @return Proxy of resulting expression.
+		 */
+		def :+(value : VALUE) : ExpressionProxy[VALUE] = {
+			val expr = queryBuilder.criteriaBuilder.sum(__leftSideExpr(), value);
+			val proxy = new ExpressionProxy(expr, queryBuilder);
+			
+			//
+			return proxy;
+		}
+		
+		/**
+		 * Add given value to this expression.
+		 * @param value Value to add.
+		 * @return Proxy of resulting expression.
+		 */
+		def :+(value : IExpressionProvider[VALUE]) : ExpressionProxy[VALUE] = {
+			val expr = queryBuilder.criteriaBuilder.sum(__leftSideExpr(), value.__getExpression());
+			val proxy = new ExpressionProxy(expr, queryBuilder);
+			
+			//
+			return proxy;
+		}
+		
+		/**
+		 * Subtract given value from this expression.
+		 * @param value Value to subtract.
+		 * @return Proxy of resulting expression.
+		 */
+		def :-(value : VALUE) : ExpressionProxy[VALUE] = {
+			val expr = queryBuilder.criteriaBuilder.diff(__leftSideExpr(), value);
+			val proxy = new ExpressionProxy(expr, queryBuilder);
+			
+			//
+			return proxy;
+		}
+		
+		/**
+		 * Subtract this expression from given value.
+		 * @param value Value to subtract from.
+		 * @return Proxy of resulting expression.
+		 */
+		def -:(value : VALUE) : ExpressionProxy[VALUE] = {
+			val expr = queryBuilder.criteriaBuilder.diff(value, __leftSideExpr());
+			val proxy = new ExpressionProxy(expr, queryBuilder);
+			
+			//
+			return proxy;
+		}
+		
+		/**
+		 * Subtract given value from this expression.
+		 * @param value Value to subtract.
+		 * @return Proxy of resulting expression.
+		 */
+		def :-(value : IExpressionProvider[VALUE]) : ExpressionProxy[VALUE] = {
+			val expr = queryBuilder.criteriaBuilder.diff(__leftSideExpr(), value.__getExpression());
+			val proxy = new ExpressionProxy(expr, queryBuilder);
 			
 			//
 			return proxy;
