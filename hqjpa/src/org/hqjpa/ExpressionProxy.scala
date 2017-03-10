@@ -111,6 +111,19 @@ object ExpressionProxy {
 		//
 		return extensions;
 	}
+	
+	/**
+	 * Implicit type converter to add operators in OperatorExtensions.BooleanExtensions to 
+	 * proxies for expressions.
+	 * @param src Instance being converted.
+	 * @return Extending instance.
+	 */
+	implicit def toBooleanExtensions(src : ExpressionProxy[java.lang.Boolean]) : BooleanExtensions = {		
+		val extensions = new BooleanExtensions(src.expr, src.queryBuilder);
+		
+		//
+		return extensions;
+	}
 		
 	/**
 	 * Extensions for proxies over comparable expressions.<br/>
@@ -279,6 +292,32 @@ object ExpressionProxy {
 		 * scopes having ambiguous implicit conversions.
 		 */
 		def int = this;		
+	}
+	
+	/**
+	 * Extensions for expressions over boolean values.<br/>
+	 * <br/>
+	 * Static methods are thread safe, instance methods are not.
+	 * 
+	 * @param expr CriteriaBuilder.Case being proxied.
+	 * @param queryBuilder Host query builder.
+	 */
+	class BooleanExtensions(
+		override val expr : Expression[java.lang.Boolean],
+		override val queryBuilder : IQueryBuilder
+	) 
+	extends 
+		ExpressionProxy[java.lang.Boolean](expr, queryBuilder) with
+		OperatorExtensions.BooleanExtensions
+	{
+		/** Extractor for left side of the expression. */
+		override val __leftSideExpr : (() => Expression[java.lang.Boolean]) = { () => expr };
+		
+		/**
+		 * Allows forcing aggregate extensions on compatible attribute proxies in 
+		 * scopes having ambiguous implicit conversions.
+		 */
+		def bool = this;		
 	}
 }
 

@@ -120,7 +120,6 @@ object SingularAttributeProxy {
 	 * attribute proxies for attributes.
 	 * 
 	 * @param OWNER Type of owner of the attribute being proxied.
-	 * @param VALUE Type of underlying attribute of attribute being proxied.
 	 * 
 	 * @param src Instance being converted.
 	 * @return Extending instance.
@@ -134,6 +133,25 @@ object SingularAttributeProxy {
 		//
 		return extensions;
 	}	
+	
+	/**
+	 * Implicit type converter to add operators in OperatorExtensions.BooleanExtensions to 
+	 * proxies for expressions.
+	 * 
+	 * @param OWNER Type of owner of the attribute being proxied.
+	 * 
+	 * @param src Instance being converted.
+	 * @return Extending instance.
+	 */
+	implicit def toBooleanExtensions[OWNER](
+				src : SingularAttributeProxy[OWNER, java.lang.Boolean]
+			) : BooleanExtensions[OWNER] = {		
+		
+		val extensions = new BooleanExtensions[OWNER](src.path, src.parentEntityProxy);
+		
+		//
+		return extensions;
+	}
 	
 	
 	/**
@@ -308,6 +326,34 @@ object SingularAttributeProxy {
 		 */
 		def int = this;			
 	}
+	
+	/**
+	 * Extensions for attributes over boolean values.<br/>
+	 * <br/>
+	 * Static methods are thread safe, instance methods are not.
+	 * 
+	 * @param OWNER Type of owner of the attribute being proxied.
+	 *
+	 * @param path Path of the attribute relative to the actual root in the query.
+	 * @param parentEntityProxy Parent entity proxy. Set by the entity proxy providing the attribute.
+	 */
+	class BooleanExtensions[OWNER](
+		override val path : Path[java.lang.Boolean],
+		override val parentEntityProxy : EntityProxy[_, _, _]
+	) 
+	extends 
+		SingularAttributeProxy[OWNER, java.lang.Boolean](parentEntityProxy) with
+		OperatorExtensions.BooleanExtensions
+	{
+		/** Extractor for left side of the expression. */
+		override val __leftSideExpr : (() => Expression[java.lang.Boolean]) = { () => path };
+		
+		/**
+		 * Allows forcing aggregate extensions on compatible attribute proxies in 
+		 * scopes having ambiguous implicit conversions.
+		 */
+		def bool = this;			
+	}
 }
 
 /**
@@ -425,6 +471,16 @@ class SingularAttributeProxy[OWNER, VALUE](
 	 */
 	def ->(value : ExpressionProxy[VALUE]) : (Path[Any], Any) = {
 		return ((path.asInstanceOf[Path[Any]], value.expr.asInstanceOf[Any]));
+	}
+	
+	/**
+	 * Creates a pair from underlying JPA path of the attribute being proxied and 
+	 * a given value. Is used in update queries to produce attribute setters.
+	 * @param value Value to add to the pair.
+	 * @return A pair of (this.path, value).
+	 */
+	def ->(value : PredicateProxy) : (Path[Any], Any) = {
+		return ((path.asInstanceOf[Path[Any]], value.predicate.asInstanceOf[Any]));
 	}
 	
 	override def __getSelection() : Selection[VALUE] = {

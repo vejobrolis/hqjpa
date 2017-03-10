@@ -98,13 +98,25 @@ object SubqueryProxy {
 	 * Implicit type converter to add operators in IntegerAggregateExtensions to 
 	 * proxies for expressions.
 	 * 
-	 * @param VALUE Type of underlying expression of expression being proxied.
-	 * 
 	 * @param src Instance being converted.
 	 * @return Extending instance.
 	 */
 	implicit def toIntegerExtensions(src : SubqueryProxy[java.lang.Integer]) : IntegerExtensions = {		
 		val extensions = new IntegerExtensions(src.subquery, src.queryBuilder);
+		
+		//
+		return extensions;
+	}
+	
+	/**
+	 * Implicit type converter to add operators in OperatorExtensions.BooleanExtensions to 
+	 * proxies for expressions.
+	 * 
+	 * @param src Instance being converted.
+	 * @return Extending instance.
+	 */
+	implicit def toBooleanExtensions(src : SubqueryProxy[java.lang.Boolean]) : BooleanExtensions = {		
+		val extensions = new BooleanExtensions(src.subquery, src.queryBuilder);
 		
 		//
 		return extensions;
@@ -271,6 +283,32 @@ object SubqueryProxy {
 	{
 		/** Extractor for left side of the expression. */
 		override val __leftSideExpr : (() => Expression[java.lang.Integer]) = { () => subquery };
+		
+		/**
+		 * Allows forcing aggregate extensions on compatible attribute proxies in 
+		 * scopes having ambiguous implicit conversions.
+		 */
+		def int = this;		
+	}
+	
+	/**
+	 * Extensions for expressions over boolean values.<br/>
+	 * <br/>
+	 * Static methods are thread safe, instance methods are not.
+	 * 
+	 * @param expr Expression being proxied.
+	 * @param queryBuilder Host query builder.
+	 */
+	class BooleanExtensions(
+		override val subquery : Subquery[java.lang.Boolean],
+		override val queryBuilder : IQueryBuilder
+	) 
+	extends 
+		SubqueryProxy[java.lang.Boolean](subquery, queryBuilder) with
+		OperatorExtensions.BooleanExtensions
+	{
+		/** Extractor for left side of the expression. */
+		override val __leftSideExpr : (() => Expression[java.lang.Boolean]) = { () => subquery };
 		
 		/**
 		 * Allows forcing aggregate extensions on compatible attribute proxies in 

@@ -48,12 +48,40 @@ class PredicateProxy(
 	}
 	
 	/**
+	 * Create "and" join of this predicate and other predicate.
+	 * @param rigthArg Proxy of predicate to "and" join.
+	 * @return Predicate proxy of "and" join.
+	 */
+	def &&(rightArg : java.lang.Boolean) : PredicateProxy = {
+		val cb = queryBuilder.criteriaBuilder;
+		val andPredicate =cb.and(predicate, cb.literal(rightArg));
+		val proxy = new PredicateProxy(andPredicate, queryBuilder);
+		
+		//
+		return proxy;
+	}
+	
+	/**
 	 * Create "||" join of this predicate and other predicate.
 	 * @param rigthArg Proxy of predicate to "or" join.
 	 * @return Predicate proxy of "or" join.
 	 */
 	def ||(rightArg : PredicateProxy) : PredicateProxy = {
 		val orPredicate = queryBuilder.criteriaBuilder.or(Vector(predicate, rightArg.predicate) :_*);
+		val proxy = new PredicateProxy(orPredicate, queryBuilder);
+		
+		//
+		return proxy;
+	}
+	
+	/**
+	 * Create "||" join of this predicate and other predicate.
+	 * @param rigthArg Value to "or" join.
+	 * @return Predicate proxy of "or" join.
+	 */
+	def ||(rightArg : java.lang.Boolean) : PredicateProxy = {
+		val cb = queryBuilder.criteriaBuilder;
+		val orPredicate = cb.or(predicate, cb.literal(rightArg));
 		val proxy = new PredicateProxy(orPredicate, queryBuilder);
 		
 		//

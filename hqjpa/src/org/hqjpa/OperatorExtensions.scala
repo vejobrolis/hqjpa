@@ -612,8 +612,6 @@ object OperatorExtensions {
 	
 	/**
 	 * Extensions for proxies over float type.
-	 * 
-	 * @param VALUE Type of VALUE being proxied.
 	 */
 	trait FloatExtensions {
 		/** Extractor for left side of the expression. */
@@ -637,8 +635,6 @@ object OperatorExtensions {
 	
 	/**
 	 * Extensions for proxies over integer type.
-	 * 
-	 * @param VALUE Type of VALUE being proxied.
 	 */
 	trait IntegerExtensions {
 		/** Extractor for left side of the expression. */
@@ -654,6 +650,29 @@ object OperatorExtensions {
 		def sumAsLong : ExpressionProxy[java.lang.Long] = {
 			val expr = queryBuilder.criteriaBuilder.sumAsLong(__leftSideExpr());
 			val proxy = new ExpressionProxy(expr, queryBuilder);
+			
+			//
+			return proxy;
+		}
+	}
+	
+	/**
+	 * Extensions for proxies over boolean type.
+	 */
+	trait BooleanExtensions {
+		/** Extractor for left side of the expression. */
+		val __leftSideExpr : () => Expression[java.lang.Boolean];
+		
+		/** Query builder to use. */
+		def queryBuilder : IQueryBuilder;
+		
+		/**
+		 * Create a NOT expression on this attribute.
+		 * @return A proxy for the resulting predicate.
+		 */
+		def unary_!() : PredicateProxy = {
+			val notPredicate = queryBuilder.criteriaBuilder.not(__leftSideExpr());
+			val proxy = new PredicateProxy(notPredicate, queryBuilder);
 			
 			//
 			return proxy;
