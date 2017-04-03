@@ -44,17 +44,8 @@ object SelectQueryBuilder {
 	 * <br/>
 	 * Static members are thread safe, instance members are not.
 	 */
-	abstract class CompositeResult {
-		/**
-		 * Allows setting result fields by index. Overriden in generated implementations. The
-		 * ordering of result fields is the same as in original expression supplied to SELECT 
-		 * macro.
-		 * @param indexArg Index of result field.
-		 * @param valueArg Value to write to the field. Runtime type of value must be assignable 
-		 * to runtime type of corresponding field.
-		 */
-		def __set(indexArg : Int, valueArg : Any) : Unit;
-	}
+	@deprecated("Use org.hqjpa.Projection for structural type definitions of projections.")
+	abstract class CompositeResult extends Projection;
 	
 	/**
 	 * Contains implementations of related Scala macros.<br/>
