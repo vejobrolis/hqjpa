@@ -3,6 +3,7 @@ package org.hqjpa
 import scala.collection.JavaConverters._
 import javax.persistence.criteria.AbstractQuery
 import javax.persistence.criteria.JoinType
+import javax.persistence.criteria.Expression
 
 
 /**
@@ -259,8 +260,30 @@ trait SelectQuerySupport { self : IQueryBuilder =>
 	 * @param a First argument of COALESCE expression.
 	 * @param b Second argument of COALESCE expression.
 	 */
-	def coalesce[VALUE](a : ExpressionProxy[VALUE], b : VALUE) : ExpressionProxy[VALUE] = {
-		val ce = criteriaBuilder.coalesce(a.expr, b);
+	def coalesce[VALUE](a : IExpressionProvider[VALUE], b : VALUE) : ExpressionProxy[VALUE] = {
+		//validate inputs
+		assert(a != null, "Argument 'a' is null.");
+				
+		//
+		val ce = criteriaBuilder.coalesce(a.__getExpression(), b);
+		val proxy = new ExpressionProxy(ce, this);
+		
+		//
+		return proxy;
+	}
+	
+	/**
+	 * Create a COALESCE(a, b) expression.
+	 * @param a First argument of COALESCE expression.
+	 * @param b Second argument of COALESCE expression.
+	 */
+	def coalesce[VALUE](a : IExpressionProvider[VALUE], b : IExpressionProvider[VALUE]) : ExpressionProxy[VALUE] = {
+		//validate inputs
+		assert(a != null, "Argument 'a' is null.");
+		assert(b != null, "Argument 'b' is null.");
+		
+		//
+		val ce = JavaInterop.coalesceExpr(criteriaBuilder, a.__getExpression(), b.__getExpression()); 
 		val proxy = new ExpressionProxy(ce, this);
 		
 		//
