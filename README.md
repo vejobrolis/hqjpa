@@ -36,7 +36,12 @@ If using the trait, basic usage is as follows:
 ~~~ scala
 //create or extend your own DB service object; your can also derive from 
 //HqjpaMetada to make DB entity definitions accessible via SomeDB.EntityX, 
- object SomeDB extends org.hqjpa.DBBase {
+ object SomeDB extends org.hqjpa.DBBase[org.hqjpa.DBBase.SessionWrapper] {
+    ... implement session wrapper factory ...
+    override protected def wrapSession(session : Session) : SESSION = {
+       return new org.hqjpa.DBBase.SessionWrapper(session);
+    }
+ 
     ... configure Hibernate, get session factory and pass it to DBBase via 
     setSessionFactory(...) at some point of initialization ... 
  }

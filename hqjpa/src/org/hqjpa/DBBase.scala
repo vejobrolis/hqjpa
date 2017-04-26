@@ -5,7 +5,40 @@ import org.hibernate.SessionFactory
 import org.hibernate.Transaction
 import org.hibernate.resource.transaction.spi.TransactionStatus
 import org.slf4j.LoggerFactory
+import java.io.Serializable
 
+/**
+ * Companion object for related trait.<br/>
+ * <br/>
+ * Thread safe.
+ */
+object DBBase {
+	/**
+	 * Wrapper for Hibernate session.<br/> 
+	 * <br/>
+	 * Is used to allow specific DB service objects to have specific "types" of session. 
+	 * This specific "type" of session can then be demanded via parameter of data manipulation 
+	 * functions, to make sure that those functions will only be called within correct "type" of 
+	 * session.<br/>
+	 * <br/>
+	 * Thread safety of members matches thread safety of corresponding members in Hibernate session.
+	 */
+	class SessionWrapper(val session : Session) {
+		/**
+		 * Persist the given transient instance, first assigning a generated identifier. (Or
+		 * using the current value of the identifier property if the <tt>assigned</tt>
+		 * generator is used.) This operation cascades to associated instances if the
+		 * association is mapped with {@code cascade="save-update"}
+		 *
+		 * @param object a transient instance of a persistent class
+		 *
+		 * @return the generated identifier
+		 */
+		def save(obj : Object) : Serializable = {
+			return session.save(obj);
+		}
+	}
+}
 
 /**
  * Base trait for DB service objects. You can use it to add select/update/delete
@@ -16,7 +49,12 @@ import org.slf4j.LoggerFactory
  * <pre>
  * 	//create or extend your own DB service object; your can also derive from 
  * 	//HqjpaMetada to make DB entity definitions accessible via SomeDB.EntityX, 
- * 	object SomeDB extends org.hqjpa.DBBase {
+ * 	object SomeDB extends org.hqjpa.DBBase[org.hqjpa.DBBase.SessionWrapper] {
+ * 		... implement session wrapper factory ...
+ * 		override protected def wrapSession(session : Session) : SESSION = {
+ * 			return new org.hqjpa.DBBase.SessionWrapper(session);
+ * 		}
+ * 
  * 		... configure Hibernate, get session factory and pass it to DBBase via 
  * 		setSessionFactory(...) at some point of initialization ... 
  *    }
@@ -33,7 +71,7 @@ import org.slf4j.LoggerFactory
  * <br/>
  * Thread safe.
  */
-trait DBBase {
+trait DBBase[SESSION <: DBBase.SessionWrapper] {
 	/** Hibernate session factory. */
 	private var sessionFactory : SessionFactory = _;
 	
@@ -81,6 +119,13 @@ trait DBBase {
 	}
 	
 	/**
+	 * Override in deriving object to implement session wrapper factory.
+	 * @param session Session to wrap.
+	 * @return Session wrapper wrapping given session.
+	 */
+	protected def wrapSession(session : Session) : SESSION;
+	
+	/**
 	 * Run given function inside Hibernate session and transaction. Supports nesting, but only one
 	 * transaction runs at any time, irrespective of nesting depth. The ongoing transaction is commited 
 	 * if outer most transaction user exits and no exception  is thrown. If outermost transaction user 
@@ -92,12 +137,14 @@ trait DBBase {
 	 * <br/>
 	 * Committing the transaction also flushes the session. 
 	 * 
+	 * @param RESULT Result type of function to be run inside transaction.
+	 * 
 	 * @param function Function to run inside transaction. (session) -> result. 
 	 * @return Result of the given function.
 	 * 
 	 * @throws java.lang.AssertionError If called without Hibernate session factory set. 
 	 */
-	def inTransaction[RESULT](function : (Session) => RESULT) : RESULT = {
+	def inTransaction[RESULT](function : (SESSION) => RESULT) : RESULT = {
 		//start session and transaction if necessary
 		if( activeSessionDepth.get() == 0 ) {
 			//open new session
@@ -131,7 +178,7 @@ trait DBBase {
 		val result = 
 			try {
 				val session = activeSession.get();
-				val result = function(session);
+				val result = function(wrapSession(session));
 				
 				//XXX: Scala 2.11.8 generates bytecode with invalid stackmap if return statement is placed here 
 				result;
