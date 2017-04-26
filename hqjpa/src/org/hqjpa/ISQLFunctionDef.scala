@@ -92,7 +92,7 @@ trait ISQLFunctionDef extends Cloneable {
 	 * @param value Value to create the literal from.
 	 * @return Expression proxy for the literal created.
 	 */
-	private def literal[VALUE <: AnyRef](value : VALUE) : ExpressionProxy[VALUE] = {
+	protected def literal[VALUE <: AnyRef](value : VALUE) : ExpressionProxy[VALUE] = {
 		val expr = queryBuilder.criteriaBuilder.literal(value);
 		val proxy = new ExpressionProxy(expr, queryBuilder);
 		return proxy;
