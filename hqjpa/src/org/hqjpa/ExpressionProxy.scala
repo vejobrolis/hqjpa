@@ -345,11 +345,18 @@ class ExpressionProxy[VALUE](
 	ISelectionProvider[VALUE]  with
 	IExpressionProvider[VALUE]
 {
-	
+	/**
+	 * Get selection compatible part of the proxied object for SELECT statement.
+	 * @return Selection compatible part of the proxies object for SELECT statement.
+	 */
 	override def __getSelection() : Selection[VALUE] = {
 		return expr;
 	}
 	
+	/**
+	 * Get expression compatible part of the proxied object.
+	 * @return Expression compatible part of the proxied object.
+	 */
 	override def __getExpression() : Expression[VALUE] = {
 		return expr;
 	}

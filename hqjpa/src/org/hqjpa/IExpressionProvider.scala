@@ -10,8 +10,8 @@ import javax.persistence.criteria.Expression
  */
 trait IExpressionProvider[T] {
 	/**
-	 * Get selection compatible part of the proxied object for SELECT statement.
-	 * @return Selection compatible part of the proxies object for SELECT statement.
+	 * Get expression compatible part of the proxied object.
+	 * @return Expression compatible part of the proxied object.
 	 */
 	def __getExpression() : Expression[T];
 }

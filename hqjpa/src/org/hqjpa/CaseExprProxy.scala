@@ -3,6 +3,7 @@ package org.hqjpa
 import javax.persistence.criteria.CriteriaBuilder
 import javax.persistence.criteria.Selection
 import javax.persistence.criteria.Order
+import javax.persistence.criteria.Expression
 
 /**
  * Companion object for related class.<br/>
@@ -332,13 +333,24 @@ class CaseExprProxy[RESULT] (
 			val expr : CriteriaBuilder.Case[RESULT], 
 			val queryBuilder : IQueryBuilder 
 		) 
-		extends ISelectionProvider[RESULT] {
+		extends 
+			ISelectionProvider[RESULT]  with
+			IExpressionProvider[RESULT] 
+{
 	
 	/**
 	 * Get selection compatible part of the proxied object for SELECT statement.
 	 * @return Selection compatible part of the proxies object for SELECT statement.
 	 */
 	override def __getSelection(): Selection[RESULT] = {
+		return expr;
+	}
+	
+	/**
+	 * Get expression compatible part of the proxied object.
+	 * @return Expression compatible part of the proxied object.
+	 */
+	override def __getExpression() : Expression[RESULT] = {
 		return expr;
 	}
 	
