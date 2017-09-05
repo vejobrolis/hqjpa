@@ -360,8 +360,8 @@ class CaseExprProxy[RESULT] (
 	 * @param result Resulf of the branch.
 	 * @return Self.
 	 */
-	def when(cond : PredicateProxy, result : ExpressionProxy[RESULT]) : CaseExprProxy[RESULT] = {
-		expr.when(cond.predicate, result.expr);
+	def when(cond : PredicateProxy, result : IExpressionProvider[RESULT]) : CaseExprProxy[RESULT] = {
+		expr.when(cond.predicate, result.__getExpression());
 		return this;
 	}
 		
@@ -381,8 +381,8 @@ class CaseExprProxy[RESULT] (
 	 * @param result Resulf of the branch.
 	 * @return Self.
 	 */
-	def otherwise(result : ExpressionProxy[RESULT]) : CaseExprProxy[RESULT] = {
-		expr.otherwise(result.expr);
+	def otherwise(result : IExpressionProvider[RESULT]) : CaseExprProxy[RESULT] = {
+		expr.otherwise(result.__getExpression());
 		return this;
 	}
 	
