@@ -6,6 +6,7 @@ import org.hibernate.Transaction
 import org.hibernate.resource.transaction.spi.TransactionStatus
 import org.slf4j.LoggerFactory
 import java.io.Serializable
+import javax.persistence.EntityTransaction
 
 /**
  * Companion object for related trait.<br/>
@@ -36,6 +37,82 @@ object DBBase {
 		 */
 		def save(obj : Object) : Serializable = {
 			return session.save(obj);
+		}
+		
+		/**
+		 * Return the persistent instance of the given entity class with the given identifier,
+		 * assuming that the instance exists. This method might return a proxied instance that
+		 * is initialized on-demand, when a non-identifier method is accessed.
+		 * <br><br>
+		 * You should not use this method to determine if an instance exists (use <tt>get()</tt>
+		 * instead). Use this only to retrieve an instance that you assume exists, where non-existence
+		 * would be an actual error.
+		 *
+		 * @param theClass a persistent class
+		 * @param id a valid identifier of an existing persistent instance of the class
+		 *
+		 * @return the persistent instance or proxy
+		 */
+		def load[T](cls : Class[T], id : Serializable) : T = {
+			return session.load(cls, id);
+		}
+		
+		/**
+		 * Remove a persistent instance from the datastore. The argument may be
+		 * an instance associated with the receiving <tt>Session</tt> or a transient
+		 * instance with an identifier associated with existing persistent state.
+		 * This operation cascades to associated instances if the association is mapped
+		 * with {@code cascade="delete"}
+		 *
+		 * @param object the instance to be removed
+		 */
+		def delete(`object` : Object) : Unit = {
+			session.delete(`object`);
+		}
+		
+		/**
+		 * Remove this instance from the session cache. Changes to the instance will
+		 * not be synchronized with the database. This operation cascades to associated
+		 * instances if the association is mapped with <tt>cascade="evict"</tt>.
+		 *
+		 * @param object The entity to evict
+		 *
+		 * @throws NullPointerException if the passed object is {@code null}
+		 * @throws IllegalArgumentException if the passed object is not defined as an entity
+		 */
+		def evict(`object` : Object) : Unit = {
+			session.evict(`object`);
+		}
+		
+		/**
+		 * Copy the state of the given object onto the persistent object with the same
+		 * identifier. If there is no persistent instance currently associated with
+		 * the session, it will be loaded. Return the persistent instance. If the
+		 * given instance is unsaved, save a copy of and return it as a newly persistent
+		 * instance. The given instance does not become associated with the session.
+		 * This operation cascades to associated instances if the association is mapped
+		 * with {@code cascade="merge"}
+		 * <p/>
+		 * The semantics of this method are defined by JSR-220.
+		 *
+		 * @param object a detached instance with state to be copied
+		 *
+		 * @return an updated persistent instance
+		 */
+		def merge[T <: Object](`object` : T) : T = {
+			return session.merge(`object`);
+		}
+		
+		/**
+		 * Return the resource-level <code>EntityTransaction</code> object.
+		 * The <code>EntityTransaction</code> instance may be used serially to
+		 * begin and commit multiple transactions.
+		 * @return EntityTransaction instance
+		 * @throws IllegalStateException if invoked on a JTA
+		 *         entity manager
+		 */
+		def getTransaction() : EntityTransaction = {
+			return session.getTransaction();
 		}
 	}
 }
