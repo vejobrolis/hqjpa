@@ -9,6 +9,12 @@ import javax.persistence.criteria.Expression
  * Static members are thread safe, instance members are not.
  */
 object OperatorExtensions {
+	/** 
+	 *  Maximum number of entries in list of IN expression before we refactor it into multiple 
+	 *  AND joined IN expressions with smaller list sizes.
+	 */
+	private val inListSizeMax : Int = 1000;
+	
 	/**
 	 * Extensions for proxies over comparable types.
 	 * 
@@ -38,13 +44,39 @@ object OperatorExtensions {
 			}
 			//value list is non-empty, generate normal IN expression
 			else {
-				val valuesCollection = values.asJavaCollection;			
-				val predicate = __leftSideExpr().in(valuesCollection);
+				//value list is not oversize, take it as is
+				if( values.size <= inListSizeMax ) {
+					val valuesCollection = values.asJavaCollection;			
+					val predicate = __leftSideExpr().in(valuesCollection);
+					
+					val proxy = new PredicateProxy(predicate, queryBuilder);
+					
+					//
+					return proxy;
+				}
+				//values list is oversize
+				else {			
+					//refactor large-listed IN expressions to multiple OR joined smaller-listed expressions to avoid
+					//Hibernate bug mentioned in https://hibernate.atlassian.net/browse/HHH-6907
+					
+					//create first expression of predicate as always "false", to make building easier
+					val cb = queryBuilder.criteriaBuilder;
+					val predicateStart = cb.equal(cb.literal(1), cb.literal(2));
+					var predProxy = new PredicateProxy(predicateStart, queryBuilder);
+					
+					//add IN expressions of predicate joined by OR
+					values.grouped(inListSizeMax).foreach { valuesGrp =>
+						//create predicate for current chunk of value list
+						val subpred = __leftSideExpr().in(valuesGrp.asJavaCollection);
+						val subpredProxy = new PredicateProxy(subpred, queryBuilder);
+						
+						//append to main predicate
+						predProxy = predProxy.||(subpredProxy);
+					}
 				
-				val proxy = new PredicateProxy(predicate, queryBuilder);
-				
-				//
-				return proxy;
+					//
+					return predProxy;
+				}				
 			}
 		}
 		
