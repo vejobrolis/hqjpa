@@ -236,7 +236,10 @@ trait SelectQuerySupport { self : IQueryBuilder =>
 	}
 	
 	/**
-	 * Set HAVING clause of query. Will overwrite any previously set HAVING clause.
+	 * Set HAVING clause of query. Will overwrite any previously set HAVING clause.<br/>
+	 * <br/>
+	 * Note that you must have a GROUP BY clause in your query if you want to use a HAVING
+	 * clause. Otherwise the HAVING clause will be ignored by Hibernate (JPA spec. permits this).
 	 * @param exprProxy Expression to use in HAVING clause.
 	 * @returns Self. For call chaining.
 	 */
