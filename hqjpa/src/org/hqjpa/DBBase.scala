@@ -150,27 +150,57 @@ object DBBase {
  */
 trait DBBase[SESSION <: DBBase.SessionWrapper] {
 	/** Hibernate session factory. */
-	private var sessionFactory : SessionFactory = _;
+	private var mSessionFactory : SessionFactory = _;
 	
 	/** Lock for accessing hibernate session factory. */
-	private val sessionFactoryLock : Object = new Object();
+	private val mSessionFactoryLock : Object = new Object();
 	
 	/** Hibernate session for current thread. */
-	private val activeSession : ThreadLocal[Session] = new ThreadLocal[Session]();
+	private val mActiveSession : ThreadLocal[Session] = new ThreadLocal[Session]();
 	
 	/** Hibernate transaction for current thread. */
-	private val activeTransaction : ThreadLocal[Transaction] = new ThreadLocal[Transaction]();
+	private val mActiveTransaction : ThreadLocal[Transaction] = new ThreadLocal[Transaction]();
 	
 	/** Depth of Hibernate session for current thread. */
-	private val activeSessionDepth : ThreadLocal[Int] = new ThreadLocal[Int]() {
+	private val mActiveSessionDepth : ThreadLocal[Int] = new ThreadLocal[Int]() {
 		override def initialValue() : Int = {
 			return 0;
 		}
 	};
+
+	
+	/** Exception event handler access lock. */
+	private val mOnExceptionLock = new Object();
+	
+	/** Exception event handler. */
+	private var mOnException : ((Throwable) => Unit) = null;
+
 	
 	/** Logger for this trait. */
-	private val logger = LoggerFactory.getLogger(this.getClass());
+	private val mLogger = LoggerFactory.getLogger(this.getClass());
 		
+	
+	/** 
+	 *  Exception event handler. Is called from outermost transaction if transaction is finished 
+	 *  with exception. Can be null. Getter.
+	 */
+	def onException : ((Throwable) => Unit) = {
+		mOnExceptionLock.synchronized {
+			return mOnException;
+		}
+	}
+	
+	/** 
+	 *  Exception event handler. Is called from outermost transaction if transaction is finished 
+	 *  with exception. Can be null. Setter.
+	 */
+	def onException_=(newHandler : ((Throwable) => Unit) ) : Unit = {
+		mOnExceptionLock.synchronized {
+			mOnException = newHandler;
+		}
+	}
+	
+	
 	/**
 	 * Set Hibernate session factory to use.
 	 * @param sf Session factory to use.
@@ -180,8 +210,8 @@ trait DBBase[SESSION <: DBBase.SessionWrapper] {
 		assert(sf != null, "Argument 'sf' is null.");
 		
 		//store inputs
-		sessionFactoryLock.synchronized {
-			sessionFactory = sf;
+		mSessionFactoryLock.synchronized {
+			mSessionFactory = sf;
 		}
 	}
 	
@@ -190,8 +220,8 @@ trait DBBase[SESSION <: DBBase.SessionWrapper] {
 	 * @return Current Hibernate session factory. Null if not set. 
 	 */
 	protected def getSessionFactory() : SessionFactory = {
-		sessionFactoryLock.synchronized {
-			return sessionFactory;
+		mSessionFactoryLock.synchronized {
+			return mSessionFactory;
 		}
 	}
 	
@@ -223,14 +253,14 @@ trait DBBase[SESSION <: DBBase.SessionWrapper] {
 	 */
 	def inTransaction[RESULT](function : (SESSION) => RESULT) : RESULT = {
 		//start session and transaction if necessary
-		if( activeSessionDepth.get() == 0 ) {
+		if( mActiveSessionDepth.get() == 0 ) {
 			//open new session
-			val session = sessionFactoryLock.synchronized {
+			val session = mSessionFactoryLock.synchronized {
 					//ensure session factory is set
-					assert(sessionFactory != null, "Hibernate session factory must be set via setSessionFactory() before trying to start DB transaction.");
+					assert(mSessionFactory != null, "Hibernate session factory must be set via setSessionFactory() before trying to start DB transaction.");
 					
 					//open new session
-					val session = sessionFactory.openSession();
+					val session = mSessionFactory.openSession();
 					
 					//
 					session;
@@ -240,21 +270,22 @@ trait DBBase[SESSION <: DBBase.SessionWrapper] {
 			val transaction = session.beginTransaction();
 			
 			//
-			activeSession.set(session);
-			activeTransaction.set(transaction);
-			activeSessionDepth.set(1);
+			mActiveSession.set(session);
+			mActiveTransaction.set(transaction);
+			mActiveSessionDepth.set(1);
 		}
 		//reuse active transaction otherwise
 		else {
-			activeSessionDepth.set(activeSessionDepth.get() + 1);
+			mActiveSessionDepth.set(mActiveSessionDepth.get() + 1);
 		}
 		
 		//run given function inside transaction
 		var exceptionCaught = false;
+		var exception : Throwable = null
 		
-		val result = 
+		val result : RESULT = 
 			try {
-				val session = activeSession.get();
+				val session = mActiveSession.get();
 				val result = function(wrapSession(session));
 				
 				//XXX: Scala 2.11.8 generates bytecode with invalid stackmap if return statement is placed here 
@@ -265,14 +296,15 @@ trait DBBase[SESSION <: DBBase.SessionWrapper] {
 				//do not catch Throwable to avoid catching Scala control flow throwables (like scala.runtime.NonLocalReturnControl)
 				case e @ (_: Error | _: Exception) => {
 					exceptionCaught = true;
+					exception = e;
 					
 					//indicate exit from current transaction user
-					activeSessionDepth.set(activeSessionDepth.get() - 1);
+					mActiveSessionDepth.set(mActiveSessionDepth.get() - 1);
 					
 					//rollback transaction for outermost user, unless it is done already
-					if( activeSessionDepth.get() == 0 ) {
+					if( mActiveSessionDepth.get() == 0 ) {
 						//rollback transaction
-						val transaction = activeTransaction.get();
+						val transaction = mActiveTransaction.get();
 						val transactionStatus = transaction.getStatus();
 						
 						if( 
@@ -283,16 +315,16 @@ trait DBBase[SESSION <: DBBase.SessionWrapper] {
 						}
 						
 						//close session
-						val session = activeSession.get();
+						val session = mActiveSession.get();
 						session.close();
 						
 						//indicate that no session and transaction is running
-						activeSession.set(null);
-						activeTransaction.set(null);
+						mActiveSession.set(null);
+						mActiveTransaction.set(null);
 					}
 					
-					//rethrow exception from transaction user
-					throw e;
+					//re-throw exception from transaction user
+					throw e;	
 				}
 			}
 			//commit transaction if outermost user exits and transaction is still active
@@ -300,12 +332,12 @@ trait DBBase[SESSION <: DBBase.SessionWrapper] {
 				//do nothing if transaction was rolled back due to exception
 				if( !exceptionCaught ) {
 					//indicate exit from current transaction user
-					activeSessionDepth.set(activeSessionDepth.get() - 1);
+					mActiveSessionDepth.set(mActiveSessionDepth.get() - 1);
 					
 					//if outermost user has completed, finalize transaction and close the session
-					if( activeSessionDepth.get() == 0 ) {
+					if( mActiveSessionDepth.get() == 0 ) {
 						//finalize
-						val transaction = activeTransaction.get();
+						val transaction = mActiveTransaction.get();
 						val transactionStatus = transaction.getStatus();
 						
 						transactionStatus match {
@@ -320,13 +352,23 @@ trait DBBase[SESSION <: DBBase.SessionWrapper] {
 						}
 						
 						//close the session
-						val session = activeSession.get();
+						val session = mActiveSession.get();
 						session.close();
 						
 						//indicate that no transaction is running
-						activeSession.set(null);
-						activeTransaction.set(null);
+						mActiveSession.set(null);
+						mActiveTransaction.set(null);
 					}	
+				}
+				//invoke exception handler if this is outermost transaction and it finished with exception
+				else {
+					if( mActiveSessionDepth.get() == 0 ) {
+						mOnExceptionLock.synchronized {
+							if( mOnException != null ) {
+								mOnException(exception);
+							}
+						}
+					}
 				}
 			}
 		
@@ -348,8 +390,8 @@ trait DBBase[SESSION <: DBBase.SessionWrapper] {
 	def select[ROW <: Any](builder : (SelectQueryBuilder) => ROW) : SelectQueryBuilder.ResultChoice[ROW] = {
 		//get active session, fail if none is available
 		val session = 
-			if( activeSessionDepth.get() > 0 ) {
-				activeSession.get();
+			if( mActiveSessionDepth.get() > 0 ) {
+				mActiveSession.get();
 			}
 			else {
 				val msg = "Calling select() is only allowed inside Hibernate session, because it needs a valid instance of javax.persistence.EntityManager.";
@@ -393,8 +435,8 @@ trait DBBase[SESSION <: DBBase.SessionWrapper] {
 		
 		//get active session, fail if none is available
 		val session = 
-			if( activeSessionDepth.get() > 0 ) {
-				activeSession.get();
+			if( mActiveSessionDepth.get() > 0 ) {
+				mActiveSession.get();
 			}
 			else {
 				val msg = "Calling update() is only allowed inside Hibernate session, because it needs a valid instance of javax.persistence.EntityManager.";
@@ -445,8 +487,8 @@ trait DBBase[SESSION <: DBBase.SessionWrapper] {
 		
 		//get active session, fail if none is available
 		val session = 
-			if( activeSessionDepth.get() > 0 ) {
-				activeSession.get();
+			if( mActiveSessionDepth.get() > 0 ) {
+				mActiveSession.get();
 			}
 			else {
 				val msg = "Calling delete() is only allowed inside Hibernate session, because it needs a valid instance of javax.persistence.EntityManager.";
