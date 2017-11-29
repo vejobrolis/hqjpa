@@ -709,5 +709,29 @@ object OperatorExtensions {
 			//
 			return proxy;
 		}
+		
+		/**
+		 * Tell if this expression is true.
+		 * @return A proxy for the resulting predicate.
+		 */
+		def isTrue() : PredicateProxy = {
+			val predicate = queryBuilder.criteriaBuilder.isTrue(__leftSideExpr());
+			val proxy = new PredicateProxy(predicate, queryBuilder);
+			
+			//
+			return proxy;
+		}
+		
+		/**
+		 * Tell if this expression is false.
+		 * @return A proxy for the resulting predicate.
+		 */
+		def isFalse() : PredicateProxy = {
+			val predicate = queryBuilder.criteriaBuilder.isFalse(__leftSideExpr());
+			val proxy = new PredicateProxy(predicate, queryBuilder);
+			
+			//
+			return proxy;
+		}
 	}
 }
