@@ -40,14 +40,6 @@ object SelectQueryBuilder {
 	}
 	
 	/**
-	 * Base class for composite results of SELECT clause.<br>
-	 * <br/>
-	 * Static members are thread safe, instance members are not.
-	 */
-	@deprecated("Use org.hqjpa.Projection for structural type definitions of projections.")
-	abstract class CompositeResult extends Projection;
-	
-	/**
 	 * Contains implementations of related Scala macros.<br/>
 	 * <br/>
 	 * Static methods are thread safe, instance methods are not.
@@ -392,7 +384,7 @@ object SelectQueryBuilder {
 			
 			//generate row container class definition
 			val rowContainerClassDef = q"""
-					class __rowContainerClass extends org.hqjpa.SelectQueryBuilder.CompositeResult {
+					class __rowContainerClass extends org.hqjpa.Projection {
 							..$substituteFields
 							$byIndexSetter
 							$toString
@@ -665,7 +657,7 @@ object SelectQueryBuilder {
 				};	
 			
 			//generate container
-			val dst = dstGen().asInstanceOf[CompositeResult];
+			val dst = dstGen().asInstanceOf[Projection];
 			
 			//transcribe to container
 			cells.zipWithIndex.foreach { case(value, index) =>
