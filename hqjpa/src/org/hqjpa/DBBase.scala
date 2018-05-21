@@ -40,6 +40,23 @@ object DBBase {
 		}
 		
 		/**
+		 * Either {@link #save(Object)} or {@link #update(Object)} the given
+		 * instance, depending upon resolution of the unsaved-value checks (see the
+		 * manual for discussion of unsaved-value checking).
+		 * <p/>
+		 * This operation cascades to associated instances if the association is mapped
+		 * with {@code cascade="save-update"}
+		 *
+		 * @param object a transient or detached instance containing new or updated state
+		 *
+		 * @see Session#save(java.lang.Object)
+		 * @see Session#update(Object object)
+		 */
+		def saveOrUpdate(obj : Object) : Unit = {
+			return session.saveOrUpdate(obj);
+		}
+		
+		/**
 		 * Return the persistent instance of the given entity class with the given identifier,
 		 * assuming that the instance exists. This method might return a proxied instance that
 		 * is initialized on-demand, when a non-identifier method is accessed.
